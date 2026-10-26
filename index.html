@@ -1,0 +1,690 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090b10">
+<title>ICT SBX — Trading Sessions</title>
+<style>
+:root{
+  --bg:#090b10;--panel:#10141d;--panel2:#151b27;--border:#242c3b;
+  --text:#f2f5fb;--muted:#8792a6;--accent:#a6f36b;--accent2:#d1ffab;
+  --blue:#82aaff;--red:#ff7979;--gold:#f2c879;--radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.app{min-height:100vh}
+.sidebar{
+ position:fixed;inset:0 auto 0 0;width:238px;padding:27px 17px;
+ border-right:1px solid var(--border);background:#0c0f16;display:flex;flex-direction:column;z-index:5
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 9px 33px}
+.logo{width:39px;height:39px;border-radius:12px;background:var(--accent);color:#10150c;display:grid;place-items:center;font-weight:950;font-size:13px;letter-spacing:-1px}
+.brand-name{font-weight:850;letter-spacing:1.5px;font-size:15px}
+.brand-sub{color:var(--muted);font-size:10px;letter-spacing:2px;margin-top:2px}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.8px;color:#667185;padding:0 12px;margin:0 0 10px}
+.nav{display:grid;gap:5px}
+.nav-btn{border:1px solid transparent;background:transparent;color:var(--muted);display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;text-align:left;width:100%;transition:.2s}
+.nav-btn:hover{background:var(--panel);color:var(--text)}
+.nav-btn.active{background:#1a2420;border-color:#2d4630;color:var(--accent)}
+.nav-icon{width:21px;text-align:center;font-size:17px}
+.sidebar-bottom{margin-top:auto}
+.status-box{padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--panel)}
+.status-line{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:650}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px #a6f36655}
+.status-box p{color:var(--muted);font-size:11px;margin:7px 0 0}
+.main{margin-left:238px;min-height:100vh}
+.topbar{height:76px;padding:0 35px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:15px;background:#090b10ee;position:sticky;top:0;z-index:4;backdrop-filter:blur(16px)}
+.breadcrumb{color:var(--muted);font-size:12px}
+.breadcrumb strong{color:var(--text);font-weight:650}
+.top-actions{display:flex;align-items:center;gap:10px}
+.lang-select,.theme-btn{height:38px;border:1px solid var(--border);border-radius:11px;background:var(--panel);color:var(--text);padding:0 12px}
+.lang-select{font-size:12px;font-weight:750;min-width:100px}
+.theme-btn{width:39px;padding:0;font-size:16px}
+.content{max-width:1240px;margin:auto;padding:34px 35px 60px}
+.page{display:none;animation:enter .22s ease}
+.page.active{display:block}
+@keyframes enter{from{opacity:.3;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.eyebrow{color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2.3px;margin-bottom:10px}
+h1{font-size:clamp(26px,3vw,36px);letter-spacing:-1.1px;line-height:1.15;margin:0}
+h2{font-size:17px;letter-spacing:-.3px;margin:0}
+h3{font-size:14px;margin:0}
+.subtitle{color:var(--muted);margin:10px 0 0;max-width:570px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}
+.date-pill{padding:8px 12px;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:11px;white-space:nowrap}
+.grid{display:grid;gap:16px}
+.clock-grid{grid-template-columns:1fr 1fr;margin-bottom:24px}
+.card{border:1px solid var(--border);background:var(--panel);border-radius:var(--radius);padding:22px;min-width:0}
+.clock-card{position:relative;overflow:hidden}
+.clock-card:after{content:"";position:absolute;width:110px;height:110px;border-radius:50%;right:-42px;top:-45px;background:#a6f36b08}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-label{font-size:11px;color:var(--muted);font-weight:650;letter-spacing:.5px}
+.tz-badge{border:1px solid var(--border);border-radius:8px;padding:4px 7px;font-size:10px;color:var(--muted)}
+.clock{font-size:clamp(27px,4vw,39px);font-weight:800;letter-spacing:-1.4px;margin:15px 0 2px;font-variant-numeric:tabular-nums}
+.clock-meta{font-size:11px;color:var(--muted)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:31px 0 14px}
+.section-head:first-child{margin-top:0}
+.section-note{font-size:11px;color:var(--muted)}
+.session-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.session-card{padding:17px;transition:border-color .2s,transform .2s}
+.session-card:hover{border-color:#3b4a5d;transform:translateY(-2px)}
+.session-name{font-weight:750;font-size:13px}
+.session-time{font-size:12px;color:var(--muted);margin-top:6px}
+.session-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:17px}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:5px 8px;font-size:10px;font-weight:750;letter-spacing:.3px}
+.badge.live{background:#a6f36b14;color:var(--accent)}
+.badge.upcoming{background:#82aaff13;color:var(--blue)}
+.badge.past{background:#ffffff08;color:#727e92}
+.badge.macro{background:#f2c87913;color:var(--gold)}
+.countdown{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.overlap-card{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.overlap-label{font-size:24px;font-weight:900;letter-spacing:3px;color:var(--accent)}
+.overlap-info{color:var(--muted);font-size:12px;margin-top:4px}
+.overlap-key{display:flex;gap:8px;flex-wrap:wrap}
+.overlap-key span{border:1px solid var(--border);border-radius:8px;padding:6px 9px;font-size:11px;color:var(--muted)}
+.alert-list{display:grid;gap:12px}
+.alert-row{display:flex;align-items:center;gap:15px;padding:17px 19px;border:1px solid var(--border);border-radius:15px;background:var(--panel)}
+.alert-icon{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;background:var(--panel2);border-radius:12px;font-size:18px}
+.alert-copy{flex:1;min-width:0}
+.alert-copy p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.switch{position:relative;width:43px;height:25px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;border-radius:30px;background:#30394a;transition:.2s;cursor:pointer}
+.slider:before{content:"";position:absolute;width:17px;height:17px;left:4px;top:4px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--accent)}
+.switch input:checked+.slider:before{transform:translateX(18px);background:#17210f}
+.switch input:focus-visible+.slider{outline:2px solid var(--accent);outline-offset:3px}
+.info-banner{border:1px solid #344c31;background:#121b14;border-radius:14px;padding:15px 17px;color:#c4d6ba;font-size:12px;margin-top:17px}
+.info-banner strong{color:var(--accent)}
+.settings-grid{grid-template-columns:1fr 1fr}
+.setting-group{padding:20px 0;border-bottom:1px solid var(--border)}
+.setting-group:last-child{border-bottom:0;padding-bottom:0}
+.setting-label{font-weight:700;font-size:13px}
+.setting-desc{color:var(--muted);font-size:11px;margin-top:4px}
+.setting-control{margin-top:12px}
+.field{width:100%;height:42px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:0 12px}
+.btn{border:1px solid var(--border);border-radius:11px;background:var(--panel2);color:var(--text);padding:10px 14px;font-size:12px;font-weight:750;transition:.2s}
+.btn:hover{border-color:#59657b}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#11170d}
+.btn.primary:hover{background:var(--accent2)}
+.btn-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.about-hero{border:1px solid #34432f;border-radius:22px;background:linear-gradient(130deg,#17231a,#10141d 68%);padding:30px;margin-bottom:17px;position:relative;overflow:hidden}
+.about-hero:after{content:"SBX";position:absolute;right:20px;bottom:-37px;font-size:110px;font-weight:950;letter-spacing:-8px;color:#a6f36b08;pointer-events:none}
+.about-logo{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.about-logo .logo{width:52px;height:52px;font-size:16px}
+.about-hero p{color:#a6b1c2;max-width:540px;margin:13px 0 0}
+.token-card{margin-top:16px}
+.token-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.token-symbol{border:1px solid #394a31;color:var(--accent);background:#a6f36b0c;border-radius:9px;padding:5px 9px;font-size:11px;font-weight:800}
+.token-address{word-break:break-all;color:#b5c0d1;background:#0b0e14;border:1px solid var(--border);border-radius:11px;padding:13px;margin-top:14px;font:11px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace}
+.muted{color:var(--muted)}
+.small{font-size:11px}
+.footer{border-top:1px solid var(--border);padding-top:18px;margin-top:32px;color:#596579;font-size:10px;display:flex;justify-content:space-between;gap:12px}
+.mobile-header{display:none}
+body.light{--bg:#f3f5f8;--panel:#fff;--panel2:#f0f3f7;--border:#dce2eb;--text:#17202e;--muted:#667389}
+body.light .sidebar{background:#fff}
+body.light .topbar{background:#ffffffed}
+body.light .about-hero{background:linear-gradient(130deg,#e7f4e2,#fff)}
+body.light .about-hero p{color:#596579}
+body.light .token-address{background:#f5f7fa;color:#344056}
+body.light .info-banner{background:#eef7e9;color:#43583a}
+body.light .nav-btn.active{background:#edf6e8;border-color:#d5e8ca}
+@media(max-width:1050px){.session-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.content{padding:28px 24px 50px}.topbar{padding:0 24px}}
+@media(max-width:700px){
+ .sidebar{display:none}.main{margin-left:0;padding-bottom:76px}
+ .topbar{height:65px;padding:0 16px}
+ .mobile-header{display:flex;align-items:center;gap:9px}
+ .mobile-header .logo{width:33px;height:33px;border-radius:10px;font-size:11px}
+ .mobile-brand{font-weight:850;letter-spacing:1px;font-size:13px}
+ .breadcrumb{display:none}.content{padding:25px 16px 35px}
+ .page-head{flex-direction:column;gap:12px;margin-bottom:22px}
+ .date-pill{align-self:flex-start}
+ .clock-grid{gap:10px}
+ .card{padding:17px;border-radius:16px}
+ .clock{font-size:clamp(23px,7vw,34px);letter-spacing:-1px}
+ .tz-badge{font-size:9px;padding:4px 5px}
+ .session-grid{grid-template-columns:1fr 1fr;gap:10px}
+ .session-card{padding:14px}
+ .session-name{font-size:12px}
+ .session-time{font-size:11px}
+ .session-bottom{align-items:flex-start;flex-direction:column;margin-top:12px}
+ .settings-grid{grid-template-columns:1fr}
+ .alert-row{padding:14px 12px;gap:11px}
+ .alert-icon{width:36px;height:36px}
+ .alert-copy p{font-size:11px}
+ .bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(4,1fr);left:0;right:0;bottom:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:#0c0f16f5;border-top:1px solid var(--border);backdrop-filter:blur(18px);z-index:10}
+ body.light .bottom-nav{background:#ffffffed}
+ .bottom-nav .nav-btn{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:7px 2px;border-radius:10px;font-size:10px;text-align:center}
+ .bottom-nav .nav-icon{font-size:17px;width:auto}
+ .bottom-nav .nav-btn.active{border-color:transparent}
+ .footer{font-size:9px}
+ .overlap-card{align-items:flex-start;flex-direction:column}
+}
+@media(min-width:701px){.bottom-nav{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">SBX</div>
+    <div><div class="brand-name">ICT SBX</div><div class="brand-sub">TRADING TOOLS</div></div>
+  </div>
+  <div class="nav-label" data-i="workspace">Workspace</div>
+  <nav class="nav">
+    <button class="nav-btn active" data-page="sessions"><span class="nav-icon">◷</span><span data-i="sessions">Sessions</span></button>
+    <button class="nav-btn" data-page="alerts"><span class="nav-icon">⌁</span><span data-i="alerts">Smart Alerts</span></button>
+    <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙</span><span data-i="settings">Settings</span></button>
+    <button class="nav-btn" data-page="about"><span class="nav-icon">ⓘ</span><span data-i="about">About Us</span></button>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="status-box">
+      <div class="status-line"><span class="dot"></span><span data-i="ready">Interface ready</span></div>
+      <p data-i="localNotice">Times update automatically</p>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <header class="topbar">
+    <div class="mobile-header">
+      <div class="logo">SBX</div><span class="mobile-brand">ICT SBX</span>
+    </div>
+    <div class="breadcrumb">ICT SBX <span style="color:#4b5668"> / </span> <strong id="crumb">Sessions</strong></div>
+    <div class="top-actions">
+      <select id="language" class="lang-select" aria-label="Choose language">
+        <option value="en">🌐 English</option>
+        <option value="ru">🌐 Русский</option>
+        <option value="ka">🌐 ქართული</option>
+        <option value="es">🌐 Español</option>
+      </select>
+      <button class="theme-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">☾</button>
+    </div>
+  </header>
+
+  <div class="content">
+    <section class="page active" id="page-sessions">
+      <div class="page-head">
+        <div><div class="eyebrow" data-i="workspace">Workspace</div><h1 data-i="sessionTitle">Trading Sessions</h1><p class="subtitle" data-i="sessionDesc">Keep your trading day aligned with the clock.</p></div>
+        <div class="date-pill" id="dateNow">—</div>
+      </div>
+
+      <div class="grid clock-grid">
+        <div class="card clock-card">
+          <div class="card-top"><span class="card-label" data-i="localTime">YOUR LOCAL TIME</span><span class="tz-badge" data-i="deviceTz">DEVICE TIMEZONE</span></div>
+          <div class="clock" id="localClock">--:--:--</div>
+          <div class="clock-meta" id="localDate">—</div>
+        </div>
+        <div class="card clock-card">
+          <div class="card-top"><span class="card-label" data-i="newYork">NEW YORK</span><span class="tz-badge">America/New_York</span></div>
+          <div class="clock" id="nyClock">--:--:--</div>
+          <div class="clock-meta" id="nyDate">—</div>
+        </div>
+      </div>
+
+      <div class="section-head"><h2 data-i="todaySessions">Today's Windows</h2><span class="section-note" data-i="nyTimes">All times in New York time</span></div>
+      <div class="grid session-grid" id="sessionsGrid"></div>
+
+      <div class="section-head"><h2 data-i="overlapTitle">Window Overlap</h2></div>
+      <div class="card overlap-card">
+        <div><div class="overlap-label" id="overlapMarks">—</div><div class="overlap-info" id="overlapText">—</div></div>
+        <div class="overlap-key"><span><b style="color:var(--accent)">+</b> <span data-i="oneWindow">1 window</span></span><span><b style="color:var(--accent)">++</b> <span data-i="twoWindows">2 windows</span></span><span><b style="color:var(--accent)">+++</b> <span data-i="threeWindows">3+ windows</span></span></div>
+      </div>
+      <div class="footer"><span>ICT SBX · <span data-i="tradingTools">Trading tools</span></span><span data-i="localOnly">Times are shown for reference</span></div>
+    </section>
+
+    <section class="page" id="page-alerts">
+      <div class="page-head">
+        <div><div class="eyebrow" data-i="automation">Automation</div><h1 data-i="alertsTitle">Smart Alerts</h1><p class="subtitle" data-i="alertsDesc">Choose which session reminders you want to receive.</p></div>
+      </div>
+      <div class="section-head"><h2 data-i="alertPreferences">Alert Preferences</h2></div>
+      <div class="alert-list">
+        <div class="alert-row"><div class="alert-icon">◷</div><div class="alert-copy"><h3 data-i="sessionStart">Session start</h3><p data-i="sessionStartDesc">Get a reminder when a trading window begins.</p></div><label class="switch"><input type="checkbox" id="alertStart"><span class="slider"></span></label></div>
+        <div class="alert-row"><div class="alert-icon">◴</div><div class="alert-copy"><h3 data-i="sessionEnd">Session end</h3><p data-i="sessionEndDesc">Get a reminder when a trading window closes.</p></div><label class="switch"><input type="checkbox" id="alertEnd"><span class="slider"></span></label></div>
+        <div class="alert-row"><div class="alert-icon">⌁</div><div class="alert-copy"><h3 data-i="silverBullet">Silver Bullet windows</h3><p data-i="silverBulletDesc">Reminders for the configured Silver Bullet periods.</p></div><label class="switch"><input type="checkbox" id="alertSB"><span class="slider"></span></label></div>
+        <div class="alert-row"><div class="alert-icon">◎</div><div class="alert-copy"><h3 data-i="macroAlerts">Macro windows</h3><p data-i="macroDesc">Reminders for configured macro times.</p></div><label class="switch"><input type="checkbox" id="alertMacro"><span class="slider"></span></label></div>
+      </div>
+      <div class="info-banner"><strong data-i="prototypeLabel">Prototype note:</strong> <span data-i="alertsPrototype">These switches save your preferences in this browser. Actual scheduled notifications while the page is closed require a connected service worker or server-side scheduler.</span></div>
+      <div class="section-head"><h2 data-i="testNotifications">Test Notifications</h2></div>
+      <div class="card"><p class="muted" style="margin-top:0" data-i="testDesc">Check whether this browser can display a notification while this page is open.</p><div class="btn-row"><button class="btn primary" id="testNotification" data-i="sendTest">Send test notification</button></div><p id="notificationStatus" class="small muted" aria-live="polite"></p></div>
+      <div class="footer"><span>ICT SBX</span><span data-i="preferencesSaved">Preferences are saved locally</span></div>
+    </section>
+
+    <section class="page" id="page-settings">
+      <div class="page-head"><div><div class="eyebrow" data-i="personalization">Personalization</div><h1 data-i="settingsTitle">Settings</h1><p class="subtitle" data-i="settingsDesc">Make ICT SBX work the way you prefer.</p></div></div>
+      <div class="grid settings-grid">
+        <div class="card">
+          <h2 data-i="appearance">Appearance & Language</h2>
+          <div class="setting-group"><div class="setting-label" data-i="languageLabel">Interface language</div><div class="setting-desc" data-i="languageDesc">Choose your preferred language.</div><div class="setting-control"><select id="languageSetting" class="field"><option value="en">English</option><option value="ru">Русский</option><option value="ka">ქართული</option><option value="es">Español</option></select></div></div>
+          <div class="setting-group"><div class="setting-label" data-i="themeLabel">Color theme</div><div class="setting-desc" data-i="themeDesc">Switch between dark and light appearance.</div><div class="btn-row"><button class="btn" id="darkMode" data-i="darkTheme">Dark theme</button><button class="btn" id="lightMode" data-i="lightTheme">Light theme</button></div></div>
+        </div>
+        <div class="card">
+          <h2 data-i="timePreferences">Time Preferences</h2>
+          <div class="setting-group"><div class="setting-label" data-i="timezoneLabel">Clock display</div><div class="setting-desc" data-i="timezoneDesc">Your local clock follows your device timezone. Session windows use New York time.</div><div class="setting-control"><select class="field" id="clockFormat"><option value="24">24-hour clock</option><option value="12">12-hour clock</option></select></div></div>
+          <div class="setting-group"><div class="setting-label" data-i="reminderSettings">Reminder settings</div><div class="setting-desc" data-i="reminderDesc">Your alert preferences are stored in this browser.</div><div class="btn-row"><button class="btn" id="resetPrefs" data-i="resetSettings">Reset preferences</button></div></div>
+        </div>
+      </div>
+      <div class="footer"><span>ICT SBX</span><span data-i="settingsLocal">Settings are stored on this device</span></div>
+    </section>
+
+    <section class="page" id="page-about">
+      <div class="page-head"><div><div class="eyebrow" data-i="aboutEyebrow">The project</div><h1 data-i="aboutTitle">About ICT SBX</h1><p class="subtitle" data-i="aboutDesc">A focused workspace for session awareness and trading routines.</p></div></div>
+      <div class="about-hero">
+        <div class="about-logo"><div class="logo">SBX</div><div><div class="brand-name" style="font-size:19px">ICT SBX</div><div class="brand-sub" data-i="tradingWorkspace">TRADING WORKSPACE</div></div></div>
+        <h2 data-i="aboutHeadline">Structure your trading day.</h2>
+        <p data-i="aboutParagraph">ICT SBX brings session times, key trading windows and reminder preferences into one simple interface. It is designed as a reference tool to help you stay organized.</p>
+      </div>
+      <div class="card token-card">
+        <div class="token-title"><div><div class="eyebrow" data-i="tokenInfo">Token information</div><h2>SXB_APEX</h2></div><span class="token-symbol">SBX</span></div>
+        <p class="muted small" data-i="tokenDesc">Token details provided for informational reference.</p>
+        <div class="token-address" id="tokenAddress">GNJiT4p7i6X8QeFtgYLGzgV46YYS8hiAY46PDWETpump</div>
+        <div class="btn-row"><button class="btn primary" id="copyToken" data-i="copyAddress">Copy address</button><a class="btn" href="https://solscan.io/" target="_blank" rel="noopener noreferrer" style="text-decoration:none" data-i="openExplorer">Open Solscan</a></div>
+        <p id="copyStatus" class="small muted" aria-live="polite"></p>
+      </div>
+      <div class="info-banner"><strong data-i="noticeLabel">Notice:</strong> <span data-i="tokenNotice">This card only displays the supplied token details. It does not verify the token, its ownership, safety, price or market status.</span></div>
+      <div class="footer"><span>ICT SBX</span><span data-i="aboutFooter">Built for session awareness</span></div>
+    </section>
+  </div>
+</main>
+
+<nav class="bottom-nav" aria-label="Main navigation">
+  <button class="nav-btn active" data-page="sessions"><span class="nav-icon">◷</span><span data-i="sessions">Sessions</span></button>
+  <button class="nav-btn" data-page="alerts"><span class="nav-icon">⌁</span><span data-i="alerts">Smart Alerts</span></button>
+  <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙</span><span data-i="settings">Settings</span></button>
+  <button class="nav-btn" data-page="about"><span class="nav-icon">ⓘ</span><span data-i="about">About Us</span></button>
+</nav>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+const TOKEN = "GNJiT4p7i6X8QeFtgYLGzgV46YYS8hiAY46PDWETpump";
+const TZ = "America/New_York";
+const LANGS = ["en","ru","ka","es"];
+
+const T = {
+en:{
+workspace:"Workspace",sessions:"Sessions",alerts:"Smart Alerts",settings:"Settings",about:"About Us",
+ready:"Interface ready",localNotice:"Times update automatically",sessionTitle:"Trading Sessions",
+sessionDesc:"Keep your trading day aligned with the clock.",localTime:"YOUR LOCAL TIME",deviceTz:"DEVICE TIMEZONE",
+newYork:"NEW YORK",todaySessions:"Today's Windows",nyTimes:"All times in New York time",
+overlapTitle:"Window Overlap",oneWindow:"1 window",twoWindows:"2 windows",threeWindows:"3+ windows",
+tradingTools:"Trading tools",localOnly:"Times are shown for reference",automation:"Automation",
+alertsTitle:"Smart Alerts",alertsDesc:"Choose which session reminders you want to receive.",
+alertPreferences:"Alert Preferences",sessionStart:"Session start",sessionStartDesc:"Get a reminder when a trading window begins.",
+sessionEnd:"Session end",sessionEndDesc:"Get a reminder when a trading window closes.",
+silverBullet:"Silver Bullet windows",silverBulletDesc:"Reminders for the configured Silver Bullet periods.",
+macroAlerts:"Macro windows",macroDesc:"Reminders for configured macro times.",
+prototypeLabel:"Prototype note:",alertsPrototype:"These switches save your preferences in this browser. Actual scheduled notifications while the page is closed require a connected service worker or server-side scheduler.",
+testNotifications:"Test Notifications",testDesc:"Check whether this browser can display a notification while this page is open.",
+sendTest:"Send test notification",preferencesSaved:"Preferences are saved locally",personalization:"Personalization",
+settingsTitle:"Settings",settingsDesc:"Make ICT SBX work the way you prefer.",appearance:"Appearance & Language",
+languageLabel:"Interface language",languageDesc:"Choose your preferred language.",themeLabel:"Color theme",
+themeDesc:"Switch between dark and light appearance.",darkTheme:"Dark theme",lightTheme:"Light theme",
+timePreferences:"Time Preferences",timezoneLabel:"Clock display",
+timezoneDesc:"Your local clock follows your device timezone. Session windows use New York time.",
+reminderSettings:"Reminder settings",reminderDesc:"Your alert preferences are stored in this browser.",
+resetSettings:"Reset preferences",settingsLocal:"Settings are stored on this device",
+aboutEyebrow:"The project",aboutTitle:"About ICT SBX",
+aboutDesc:"A focused workspace for session awareness and trading routines.",tradingWorkspace:"TRADING WORKSPACE",
+aboutHeadline:"Structure your trading day.",aboutParagraph:"ICT SBX brings session times, key trading windows and reminder preferences into one simple interface. It is designed as a reference tool to help you stay organized.",
+tokenInfo:"Token information",tokenDesc:"Token details provided for informational reference.",copyAddress:"Copy address",
+openExplorer:"Open Solscan",noticeLabel:"Notice:",tokenNotice:"This card only displays the supplied token details. It does not verify the token, its ownership, safety, price or market status.",
+aboutFooter:"Built for session awareness",active:"ACTIVE NOW",upcoming:"UP NEXT",finished:"FINISHED",
+asia:"Asia",london:"London",nyAM:"New York AM",nyLunch:"New York Lunch",nyPM:"New York PM",
+sbLondon:"Silver Bullet · London",sbAM:"Silver Bullet · NY AM",sbPM:"Silver Bullet · NY PM",
+macro830:"Macro · 08:30",macro950:"Macro · 09:50",macro1050:"Macro · 10:50",macro1350:"Macro · 13:50",
+untilStart:"Starts in",untilEnd:"Ends in",remaining:"Time remaining",noOverlap:"No overlapping windows right now.",
+oneOverlap:"1 window active",manyOverlap:"windows overlapping",macro:"MACRO",testSuccess:"Test notification sent.",
+testDenied:"Notifications are blocked or unavailable in this browser.",testUnsupported:"This browser does not support notifications.",
+copied:"Address copied.",copyFailed:"Copy the address manually.",resetDone:"Preferences reset.",
+hour24:"24-hour clock",hour12:"12-hour clock",subtitle:"Session and time-zone dashboard",
+}
+,
+ru:{
+workspace:"Рабочая область",sessions:"Сессии",alerts:"Умные уведомления",settings:"Настройки",about:"О проекте",
+ready:"Интерфейс готов",localNotice:"Время обновляется автоматически",sessionTitle:"Торговые сессии",
+sessionDesc:"Контролируй торговый день по времени.",localTime:"ТВОЁ МЕСТНОЕ ВРЕМЯ",deviceTz:"ЧАСОВОЙ ПОЯС УСТРОЙСТВА",
+newYork:"НЬЮ-ЙОРК",todaySessions:"Временные окна",nyTimes:"Время указано по Нью-Йорку",
+overlapTitle:"Пересечение окон",oneWindow:"1 окно",twoWindows:"2 окна",threeWindows:"3+ окна",
+tradingTools:"Торговые инструменты",localOnly:"Время приведено для справки",automation:"Автоматизация",
+alertsTitle:"Умные уведомления",alertsDesc:"Выбери напоминания о торговых сессиях.",
+alertPreferences:"Настройки уведомлений",sessionStart:"Начало сессии",sessionStartDesc:"Напоминание при открытии торгового окна.",
+sessionEnd:"Конец сессии",sessionEndDesc:"Напоминание при закрытии торгового окна.",
+silverBullet:"Окна Silver Bullet",silverBulletDesc:"Напоминания о периодах Silver Bullet.",
+macroAlerts:"Макроокна",macroDesc:"Напоминания о заданном времени макроокон.",
+prototypeLabel:"Важно:",alertsPrototype:"Переключатели сохраняют настройки в этом браузере. Реальные уведомления при закрытой странице требуют сервисного обработчика или серверного планировщика.",
+testNotifications:"Проверка уведомлений",testDesc:"Проверь, может ли браузер показать уведомление, пока страница открыта.",
+sendTest:"Отправить тест",preferencesSaved:"Настройки сохранены локально",personalization:"Персонализация",
+settingsTitle:"Настройки",settingsDesc:"Настрой ICT SBX под себя.",appearance:"Внешний вид и язык",
+languageLabel:"Язык интерфейса",languageDesc:"Выбери предпочитаемый язык.",themeLabel:"Тема оформления",
+themeDesc:"Переключайся между тёмной и светлой темой.",darkTheme:"Тёмная тема",lightTheme:"Светлая тема",
+timePreferences:"Настройки времени",timezoneLabel:"Формат часов",
+timezoneDesc:"Местное время берётся с устройства. Торговые окна используют время Нью-Йорка.",
+reminderSettings:"Напоминания",reminderDesc:"Настройки уведомлений хранятся в этом браузере.",
+resetSettings:"Сбросить настройки",settingsLocal:"Настройки хранятся на этом устройстве",
+aboutEyebrow:"Проект",aboutTitle:"Об ICT SBX",
+aboutDesc:"Рабочая область для торговых сессий и распорядка трейдера.",tradingWorkspace:"ТОРГОВОЕ ПРОСТРАНСТВО",
+aboutHeadline:"Структурируй свой торговый день.",aboutParagraph:"ICT SBX объединяет время сессий, ключевые торговые окна и настройки напоминаний в одном интерфейсе. Это справочный инструмент для организации торгового дня.",
+tokenInfo:"Информация о токене",tokenDesc:"Данные токена приведены для справки.",copyAddress:"Копировать адрес",
+openExplorer:"Открыть Solscan",noticeLabel:"Важно:",tokenNotice:"Здесь отображаются только предоставленные данные. Подлинность, владельцы, безопасность, цена и рыночный статус токена не проверялись.",
+aboutFooter:"Для контроля торговых сессий",active:"СЕЙЧАС",upcoming:"СКОРО",finished:"ЗАВЕРШЕНО",
+asia:"Азия",london:"Лондон",nyAM:"Нью-Йорк AM",nyLunch:"Обед NY",nyPM:"Нью-Йорк PM",
+sbLondon:"Silver Bullet · Лондон",sbAM:"Silver Bullet · NY AM",sbPM:"Silver Bullet · NY PM",
+macro830:"Макро · 08:30",macro950:"Макро · 09:50",macro1050:"Макро · 10:50",macro1350:"Макро · 13:50",
+untilStart:"До начала",untilEnd:"До конца",remaining:"Осталось",noOverlap:"Сейчас нет пересекающихся окон.",
+oneOverlap:"Активно 1 окно",manyOverlap:"окон пересекаются",macro:"МАКРО",
+testSuccess:"Тестовое уведомление отправлено.",testDenied:"Уведомления заблокированы или недоступны.",
+testUnsupported:"Браузер не поддерживает уведомления.",copied:"Адрес скопирован.",
+copyFailed:"Скопируй адрес вручную.",resetDone:"Настройки сброшены.",
+hour24:"24-часовой формат",hour12:"12-часовой формат",subtitle:"Панель сессий и часовых поясов"
+},
+ka:{
+workspace:"სამუშაო სივრცე",sessions:"სესიები",alerts:"ჭკვიანი შეტყობინებები",settings:"პარამეტრები",about:"ჩვენ შესახებ",
+ready:"ინტერფეისი მზადაა",localNotice:"დრო ავტომატურად ახლდება",sessionTitle:"სავაჭრო სესიები",
+sessionDesc:"აკონტროლე სავაჭრო დღე დროის მიხედვით.",localTime:"შენი ადგილობრივი დრო",deviceTz:"მოწყობილობის დროის სარტყელი",
+newYork:"ნიუ-იორკი",todaySessions:"დღევანდელი დროის ფანჯრები",nyTimes:"ყველა დრო ნიუ-იორკის დროით",
+overlapTitle:"ფანჯრების გადაკვეთა",oneWindow:"1 ფანჯარა",twoWindows:"2 ფანჯარა",threeWindows:"3+ ფანჯარა",
+tradingTools:"სავაჭრო ხელსაწყოები",localOnly:"დრო ნაჩვენებია საინფორმაციოდ",automation:"ავტომატიზაცია",
+alertsTitle:"ჭკვიანი შეტყობინებები",alertsDesc:"აირჩიე სესიების შეხსენებები.",
+alertPreferences:"შეტყობინებების პარამეტრები",sessionStart:"სესიის დაწყება",sessionStartDesc:"შეხსენება სავაჭრო ფანჯრის დაწყებისას.",
+sessionEnd:"სესიის დასრულება",sessionEndDesc:"შეხსენება სავაჭრო ფანჯრის დასრულებისას.",
+silverBullet:"Silver Bullet ფანჯრები",silverBulletDesc:"შეხსენებები Silver Bullet პერიოდებისთვის.",
+macroAlerts:"მაკრო ფანჯრები",macroDesc:"შეხსენებები მითითებული მაკრო დროებისთვის.",
+prototypeLabel:"შენიშვნა:",alertsPrototype:"ეს პარამეტრები ინახება ბრაუზერში. გვერდის დახურვის შემდეგ რეალური შეტყობინებებისთვის საჭიროა სერვისული მუშაკი ან სერვერული დაგეგმვა.",
+testNotifications:"შეტყობინების ტესტი",testDesc:"შეამოწმე, შეუძლია თუ არა ბრაუზერს შეტყობინების ჩვენება ღია გვერდზე.",
+sendTest:"ტესტის გაგზავნა",preferencesSaved:"პარამეტრები ლოკალურად ინახება",personalization:"პერსონალიზაცია",
+settingsTitle:"პარამეტრები",settingsDesc:"მოარგე ICT SBX შენს საჭიროებებს.",appearance:"გარეგნობა და ენა",
+languageLabel:"ინტერფეისის ენა",languageDesc:"აირჩიე სასურველი ენა.",themeLabel:"თემა",
+themeDesc:"გადართე მუქ და ნათელ თემებს შორის.",darkTheme:"მუქი თემა",lightTheme:"ნათელი თემა",
+timePreferences:"დროის პარამეტრები",timezoneLabel:"საათის ფორმატი",
+timezoneDesc:"ადგილობრივი დრო მოდის მოწყობილობიდან. სავაჭრო ფანჯრები ნიუ-იორკის დროს იყენებს.",
+reminderSettings:"შეხსენებები",reminderDesc:"შეტყობინებების პარამეტრები ამ ბრაუზერში ინახება.",
+resetSettings:"პარამეტრების განულება",settingsLocal:"პარამეტრები ამ მოწყობილობაზე ინახება",
+aboutEyebrow:"პროექტი",aboutTitle:"ICT SBX-ის შესახებ",
+aboutDesc:"სავაჭრო სესიებისა და რუტინის სამართავი სივრცე.",tradingWorkspace:"სავაჭრო სივრცე",
+aboutHeadline:"დაალაგე შენი სავაჭრო დღე.",aboutParagraph:"ICT SBX ერთ სივრცეში აერთიანებს სესიების დროს, სავაჭრო ფანჯრებსა და შეხსენებების პარამეტრებს. ეს არის საინფორმაციო ინსტრუმენტი ორგანიზებისთვის.",
+tokenInfo:"ტოკენის ინფორმაცია",tokenDesc:"ტოკენის მონაცემები მოცემულია საინფორმაციოდ.",copyAddress:"მისამართის კოპირება",
+openExplorer:"Solscan-ის გახსნა",noticeLabel:"შენიშვნა:",tokenNotice:"აქ მხოლოდ მოწოდებული მონაცემებია ნაჩვენები. ტოკენის ნამდვილობა, მფლობელები, უსაფრთხოება, ფასი და ბაზრის სტატუსი არ არის შემოწმებული.",
+aboutFooter:"სესიების კონტროლისთვის",active:"აქტიურია",upcoming:"მალე",finished:"დასრულებულია",
+asia:"აზია",london:"ლონდონი",nyAM:"ნიუ-იორკი AM",nyLunch:"NY შესვენება",nyPM:"ნიუ-იორკი PM",
+sbLondon:"Silver Bullet · ლონდონი",sbAM:"Silver Bullet · NY AM",sbPM:"Silver Bullet · NY PM",
+macro830:"მაკრო · 08:30",macro950:"მაკრო · 09:50",macro1050:"მაკრო · 10:50",macro1350:"მაკრო · 13:50",
+untilStart:"დაწყებამდე",untilEnd:"დასრულებამდე",remaining:"დარჩენილია",noOverlap:"ამჟამად ფანჯრები არ იკვეთება.",
+oneOverlap:"1 აქტიური ფანჯარა",manyOverlap:"ფანჯარა იკვეთება",macro:"მაკრო",
+testSuccess:"სატესტო შეტყობინება გაიგზავნა.",testDenied:"შეტყობინებები დაბლოკილია ან მიუწვდომელია.",
+testUnsupported:"ბრაუზერს შეტყობინებების მხარდაჭერა არ აქვს.",copied:"მისამართი დაკოპირდა.",
+copyFailed:"დააკოპირე მისამართი ხელით.",resetDone:"პარამეტრები განულდა.",
+hour24:"24-საათიანი ფორმატი",hour12:"12-საათიანი ფორმატი",subtitle:"სესიებისა და დროის სარტყლების პანელი"
+},
+es:{
+workspace:"Espacio de trabajo",sessions:"Sesiones",alerts:"Alertas inteligentes",settings:"Ajustes",about:"Acerca de",
+ready:"Interfaz lista",localNotice:"La hora se actualiza automáticamente",sessionTitle:"Sesiones de trading",
+sessionDesc:"Organiza tu jornada de trading con el reloj.",localTime:"TU HORA LOCAL",deviceTz:"ZONA HORARIA DEL DISPOSITIVO",
+newYork:"NUEVA YORK",todaySessions:"Ventanas de hoy",nyTimes:"Todas las horas son de Nueva York",
+overlapTitle:"Superposición de ventanas",oneWindow:"1 ventana",twoWindows:"2 ventanas",threeWindows:"3+ ventanas",
+tradingTools:"Herramientas de trading",localOnly:"Las horas son orientativas",automation:"Automatización",
+alertsTitle:"Alertas inteligentes",alertsDesc:"Elige los recordatorios de sesión que quieres recibir.",
+alertPreferences:"Preferencias de alertas",sessionStart:"Inicio de sesión",sessionStartDesc:"Aviso cuando comienza una ventana de trading.",
+sessionEnd:"Fin de sesión",sessionEndDesc:"Aviso cuando termina una ventana de trading.",
+silverBullet:"Ventanas Silver Bullet",silverBulletDesc:"Recordatorios para los periodos Silver Bullet.",
+macroAlerts:"Ventanas macro",macroDesc:"Recordatorios para los horarios macro configurados.",
+prototypeLabel:"Nota del prototipo:",alertsPrototype:"Estos interruptores guardan preferencias en este navegador. Las notificaciones programadas con la página cerrada requieren un service worker o un programador del servidor.",
+testNotifications:"Probar notificaciones",testDesc:"Comprueba si el navegador puede mostrar una notificación con esta página abierta.",
+sendTest:"Enviar prueba",preferencesSaved:"Preferencias guardadas localmente",personalization:"Personalización",
+settingsTitle:"Ajustes",settingsDesc:"Adapta ICT SBX a tus preferencias.",appearance:"Apariencia e idioma",
+languageLabel:"Idioma de la interfaz",languageDesc:"Elige tu idioma preferido.",themeLabel:"Tema de color",
+themeDesc:"Cambia entre tema oscuro y claro.",darkTheme:"Tema oscuro",lightTheme:"Tema claro",
+timePreferences:"Preferencias de hora",timezoneLabel:"Formato del reloj",
+timezoneDesc:"La hora local sigue la zona horaria del dispositivo. Las sesiones usan la hora de Nueva York.",
+reminderSettings:"Recordatorios",reminderDesc:"Las preferencias se guardan en este navegador.",
+resetSettings:"Restablecer ajustes",settingsLocal:"Los ajustes se guardan en este dispositivo",
+aboutEyebrow:"El proyecto",aboutTitle:"Acerca de ICT SBX",
+aboutDesc:"Un espacio centrado en sesiones y rutinas de trading.",tradingWorkspace:"ESPACIO DE TRADING",
+aboutHeadline:"Estructura tu jornada de trading.",aboutParagraph:"ICT SBX reúne horarios de sesión, ventanas clave y preferencias de recordatorios en una interfaz sencilla. Es una herramienta de referencia para organizar tu jornada.",
+tokenInfo:"Información del token",tokenDesc:"Los datos del token se muestran como referencia.",copyAddress:"Copiar dirección",
+openExplorer:"Abrir Solscan",noticeLabel:"Aviso:",tokenNotice:"Esta tarjeta solo muestra los datos proporcionados. No verifica el token, sus propietarios, seguridad, precio ni estado de mercado.",
+aboutFooter:"Creado para seguir las sesiones",active:"ACTIVA",upcoming:"PRÓXIMA",finished:"FINALIZADA",
+asia:"Asia",london:"Londres",nyAM:"Nueva York AM",nyLunch:"Pausa NY",nyPM:"Nueva York PM",
+sbLondon:"Silver Bullet · Londres",sbAM:"Silver Bullet · NY AM",sbPM:"Silver Bullet · NY PM",
+macro830:"Macro · 08:30",macro950:"Macro · 09:50",macro1050:"Macro · 10:50",macro1350:"Macro · 13:50",
+untilStart:"Empieza en",untilEnd:"Termina en",remaining:"Tiempo restante",noOverlap:"No hay ventanas superpuestas ahora.",
+oneOverlap:"1 ventana activa",manyOverlap:"ventanas superpuestas",macro:"MACRO",
+testSuccess:"Notificación de prueba enviada.",testDenied:"Las notificaciones están bloqueadas o no disponibles.",
+testUnsupported:"Este navegador no admite notificaciones.",copied:"Dirección copiada.",
+copyFailed:"Copia la dirección manualmente.",resetDone:"Ajustes restablecidos.",
+hour24:"Formato de 24 horas",hour12:"Formato de 12 horas",subtitle:"Panel de sesiones y zonas horarias"
+}
+};
+
+const windows = [
+ {id:"asia",key:"asia",s:19*60,e:24*60,group:"session"},
+ {id:"london",key:"london",s:2*60,e:5*60,group:"session"},
+ {id:"nyAM",key:"nyAM",s:8*60+30,e:11*60,group:"session"},
+ {id:"nyLunch",key:"nyLunch",s:12*60,e:13*60,group:"session"},
+ {id:"nyPM",key:"nyPM",s:13*60+30,e:16*60,group:"session"},
+ {id:"sbLondon",key:"sbLondon",s:3*60,e:4*60,group:"sb"},
+ {id:"sbAM",key:"sbAM",s:10*60,e:11*60,group:"sb"},
+ {id:"sbPM",key:"sbPM",s:14*60,e:15*60,group:"sb"},
+ {id:"macro830",key:"macro830",s:8*60+30,e:8*60+40,group:"macro",instant:true},
+ {id:"macro950",key:"macro950",s:9*60+50,e:10*60,group:"macro",instant:true},
+ {id:"macro1050",key:"macro1050",s:10*60+50,e:11*60,group:"macro",instant:true},
+ {id:"macro1350",key:"macro1350",s:13*60+50,e:14*60,group:"macro",instant:true}
+];
+
+const defaults = {
+ lang:"en",theme:"dark",format:"24",
+ alertStart:false,alertEnd:false,alertSB:false,alertMacro:false
+};
+let prefs = {...defaults};
+try {
+ const saved=JSON.parse(localStorage.getItem("ictsbx-prefs")||"{}");
+ prefs={...prefs,...saved};
+} catch(e) {}
+
+let currentPage="sessions";
+let lastMinute=null;
+const $=id=>document.getElementById(id);
+const tr=(key)=>T[prefs.lang]?.[key]||T.en[key]||key;
+const save=()=>{try{localStorage.setItem("ictsbx-prefs",JSON.stringify(prefs))}catch(e){}};
+
+function setLanguage(lang){
+ if(!LANGS.includes(lang))lang="en";
+ prefs.lang=lang;
+ document.documentElement.lang=lang;
+ $("language").value=lang;
+ $("languageSetting").value=lang;
+ document.querySelectorAll("[data-i]").forEach(el=>{
+   const key=el.getAttribute("data-i");
+   if(T[lang][key]!==undefined)el.textContent=T[lang][key];
+ });
+ $("crumb").textContent=tr(({sessions:"sessions",alerts:"alerts",settings:"settings",about:"about"})[currentPage]);
+ document.title="ICT SBX — "+tr(currentPage);
+ save();
+ renderSessions();
+ updateClock();
+}
+
+function setTheme(theme){
+ prefs.theme=theme==="light"?"light":"dark";
+ document.body.classList.toggle("light",prefs.theme==="light");
+ $("themeBtn").textContent=prefs.theme==="light"?"☀":"☾";
+ $("themeBtn").title=prefs.theme==="light"?"Dark theme":"Light theme";
+ save();
+}
+
+function showPage(name){
+ if(!["sessions","alerts","settings","about"].includes(name))return;
+ currentPage=name;
+ document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
+ document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
+ const crumbKeys={sessions:"sessions",alerts:"alerts",settings:"settings",about:"about"};
+ $("crumb").textContent=tr(crumbKeys[name]);
+ document.title="ICT SBX — "+tr(crumbKeys[name]);
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function partsInNY(date=new Date()){
+ const parts=new Intl.DateTimeFormat("en-US",{
+   timeZone:TZ,hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23",
+   year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"
+ }).formatToParts(date);
+ const o={};parts.forEach(p=>o[p.type]=p.value);
+ return {...o,minute:+o.hour*60 + +o.minute};
+}
+
+function clockFormat(date,zone){
+ return new Intl.DateTimeFormat(prefs.lang==="en"?"en-US":prefs.lang==="ru"?"ru-RU":prefs.lang==="ka"?"ka-GE":"es-ES",{
+  timeZone:zone,hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:prefs.format==="12"?"h12":"h23"
+ }).format(date);
+}
+function dateFormat(date,zone){
+ return new Intl.DateTimeFormat(prefs.lang==="en"?"en-US":prefs.lang==="ru"?"ru-RU":prefs.lang==="ka"?"ka-GE":"es-ES",{
+  timeZone:zone,weekday:"long",month:"short",day:"numeric",year:"numeric"
+ }).format(date);
+}
+function formatHM(minute){
+ minute=((minute%1440)+1440)%1440;
+ const h=Math.floor(minute/60),m=minute%60;
+ if(prefs.format==="12"){
+   const hour=h%12||12;
+   return `${hour}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}`;
+ }
+ return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+}
+function getState(w,minute){
+ if(w.instant)return minute>=w.s&&minute<w.e?"live":minute<w.s?"upcoming":"past";
+ if(w.s>w.e){
+   if(minute>=w.s||minute<w.e)return "live";
+   return minute<w.s?"upcoming":"past";
+ }
+ if(minute>=w.s&&minute<w.e)return "live";
+ return minute<w.s?"upcoming":"past";
+}
+function distanceTo(minute,target){
+ let d=target-minute;
+ if(d<0)d+=1440;
+ return d;
+}
+function durationLabel(mins){
+ if(mins<60)return `${mins}m`;
+ return `${Math.floor(mins/60)}h ${mins%60}m`;
+}
+function renderSessions(){
+ const now=partsInNY();
+ const grid=$("sessionsGrid");
+ grid.innerHTML="";
+ windows.forEach(w=>{
+   const state=getState(w,now.minute);
+   const card=document.createElement("div");
+   card.className="card session-card";
+   const stateText=state==="live"?tr("active"):state==="upcoming"?tr("upcoming"):tr("finished");
+   let remaining;
+   if(state==="live"){
+     remaining=distanceTo(now.minute,w.e===1440?0:w.e);
+     if(w.e===1440)remaining=1440-now.minute;
+   }else if(state==="upcoming"){
+     remaining=distanceTo(now.minute,w.s);
+   }else{
+     remaining=distanceTo(now.minute,w.s);
+   }
+   const badgeClass=w.group==="macro"?"macro":state;
+   const timeLabel=w.instant?`${formatHM(w.s)} ET`:`${formatHM(w.s)} – ${formatHM(w.e===1440?0:w.e)} ET`;
+   card.innerHTML=`
+     <div class="card-top"><span class="session-name"></span><span class="badge ${badgeClass}"></span></div>
+     <div class="session-time">${timeLabel}</div>
+     <div class="session-bottom"><span class="tz-badge">${w.group==="macro"?tr("macro"):w.group==="sb"?"SILVER BULLET":"SESSION"}</span><span class="countdown"></span></div>`;
+   card.querySelector(".session-name").textContent=tr(w.key);
+   card.querySelector(".badge").textContent=w.group==="macro"?tr("macro"):stateText;
+   card.querySelector(".countdown").textContent=w.instant?"":`${state==="live"?tr("untilEnd"):tr("untilStart")} ${durationLabel(remaining)}`;
+   grid.appendChild(card);
+ });
+ const active=windows.filter(w=>!w.instant&&getState(w,now.minute)==="live");
+ const count=active.length;
+ $("overlapMarks").textContent=count===0?"—":count===1?"+":count===2?"++":"+++";
+ $("overlapText").textContent=count===0?tr("noOverlap"):count===1?tr("oneOverlap"):`${count} ${tr("manyOverlap")}`;
+}
+
+function updateClock(){
+ const now=new Date();
+ $("localClock").textContent=clockFormat(now,Intl.DateTimeFormat().resolvedOptions().timeZone);
+ $("nyClock").textContent=clockFormat(now,TZ);
+ $("localDate").textContent=dateFormat(now,Intl.DateTimeFormat().resolvedOptions().timeZone);
+ $("nyDate").textContent=dateFormat(now,TZ);
+ $("dateNow").textContent=dateFormat(now,TZ);
+ const minute=partsInNY().minute;
+ if(lastMinute!==minute){lastMinute=minute;renderSessions();}
+}
+
+function syncControls(){
+ $("language").value=prefs.lang;
+ $("languageSetting").value=prefs.lang;
+ $("clockFormat").value=prefs.format;
+ ["alertStart","alertEnd","alertSB","alertMacro"].forEach(id=>$(id).checked=!!prefs[id]);
+ setTheme(prefs.theme);
+}
+function saveControl(id,value){
+ prefs[id]=value;save();
+}
+function setupNotifications(){
+ $("testNotification").addEventListener("click",async()=>{
+  const status=$("notificationStatus");
+  if(!("Notification" in window)){status.textContent=tr("testUnsupported");return;}
+  try{
+   let permission=Notification.permission;
+   if(permission==="default")permission=await Notification.requestPermission();
+   if(permission==="granted"){
+     new Notification("ICT SBX",{body:tr("testSuccess"),icon:""});
+     status.textContent=tr("testSuccess");
+   }else status.textContent=tr("testDenied");
+  }catch(e){status.textContent=tr("testDenied");}
+ });
+}
+
+document.querySelectorAll("[data-page]").forEach(btn=>{
+ btn.addEventListener("click",()=>showPage(btn.dataset.page));
+});
+$("language").addEventListener("change",e=>setLanguage(e.target.value));
+$("languageSetting").addEventListener("change",e=>setLanguage(e.target.value));
+$("themeBtn").addEventListener("click",()=>setTheme(prefs.theme==="light"?"dark":"light"));
+$("darkMode").addEventListener("click",()=>setTheme("dark"));
+$("lightMode").addEventListener("click",()=>setTheme("light"));
+$("clockFormat").addEventListener("change",e=>{
+ prefs.format=e.target.value;save();updateClock();renderSessions();
+});
+["alertStart","alertEnd","alertSB","alertMacro"].forEach(id=>{
+ $(id).addEventListener("change",e=>saveControl(id,e.target.checked));
+});
+$("resetPrefs").addEventListener("click",()=>{
+ prefs={...defaults};save();syncControls();setLanguage(prefs.lang);setTheme(prefs.theme);
+ $("notificationStatus").textContent=tr("resetDone");
+});
+$("copyToken").addEventListener("click",async()=>{
+ const status=$("copyStatus");
+ try{
+  await navigator.clipboard.writeText(TOKEN);
+  status.textContent=tr("copied");
+ }catch(e){
+  const area=document.createElement("textarea");
+  area.value=TOKEN;area.style.position="fixed";area.style.opacity="0";
+  document.body.appendChild(area);area.select();
+  try{document.execCommand("copy");status.textContent=tr("copied");}
+  catch(err){status.textContent=tr("copyFailed");}
+  area.remove();
+ }
+});
+setupNotifications();
+syncControls();
+setLanguage(prefs.lang);
+showPage("sessions");
+updateClock();
+setInterval(updateClock,1000);
+})();
+</script>
+</body>
+</html>
